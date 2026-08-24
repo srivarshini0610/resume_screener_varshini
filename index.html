@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentLens AI</title>
+  <meta name="description" content="AI-powered candidate intelligence, comparison and hiring evaluation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-brand" id="btn-home"><span class="brand-dot"></span> TalentLens AI</div>
+      <div class="topbar-center" id="btn-topbar-role" style="display:none"><span id="topbar-role-text">Select role</span></div>
+      <div class="topbar-right" id="topbar-actions" style="display:none">
+        <button class="btn btn-ghost btn-sm" id="nav-shortlist">Shortlist</button>
+        <button class="btn btn-ghost btn-sm" id="nav-directory">Roles</button>
+        <button class="btn btn-outline btn-sm" id="nav-compare" disabled>Compare (0)</button>
+        <button class="btn btn-fill btn-sm" id="nav-add-cand">+ Candidate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+  <main class="workspace" id="workspace">
+    <section id="v-welcome" class="welcome">
+      <h1 class="welcome-title">TalentLens AI</h1>
+      <p class="welcome-sub">Candidate intelligence, without the guesswork. Compare skills, review AI insights, make confident hiring decisions.</p>
+      <div class="welcome-actions">
+        <button class="btn btn-fill" id="btn-w-select">Select role</button>
+        <button class="btn btn-outline" id="btn-w-create">Create new role</button>
+      </div>
+      <p class="welcome-hint">Compare evidence, identify skill gaps, and understand AI recommendations for every candidate.</p>
+    </section>
+
+    <section id="v-role" style="display:none">
+      <div class="role-context">
+        <div class="role-context-left">
+          <div class="role-badge" id="role-badge">Job 1</div>
+          <h2 class="role-name" id="role-name">Role Title</h2>
+          <div class="role-skills-inline" id="role-skills"></div>
+          <div class="role-metrics-inline">
+            <span>Applicants <strong id="m-apps">0</strong></span>
+            <span>Screened <strong id="m-screened">0</strong></span>
+            <span>Shortlisted <strong id="m-short" style="color:var(--c-green)">0</strong></span>
+          </div>
+        </div>
+        <div class="role-context-right">
+          <button class="btn btn-fill btn-sm" id="btn-r-add-cand">+ Candidate</button>
+          <button class="btn btn-outline btn-sm" id="btn-r-upload-jd">Upload JD</button>
+          <button class="btn btn-danger btn-xs" id="btn-r-delete">Delete</button>
+        </div>
+      </div>
+      <div class="cand-section-header">
+        <span class="label">CANDIDATES</span>
+        <span class="label" id="cand-count-label">0 candidates</span>
+      </div>
+      <div class="cand-list" id="cand-list"></div>
+      <div class="cand-empty-state" id="cand-empty" style="display:none">
+        <p style="font-weight:600;margin-bottom:0.5rem">No candidates attached to this role yet.</p>
+        <button class="btn btn-outline btn-sm" id="btn-empty-add">+ Add first candidate</button>
+      </div>
+      <div id="inspector-wrap" style="display:none"></div>
+    </section>
+
+    <section id="v-bench" style="display:none">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.25rem">
+        <div>
+          <span class="label label-accent">COMPARE CANDIDATES</span>
+          <h2 class="role-name" style="font-size:1.5rem;margin-top:0.2rem" id="bench-title">Candidate Comparison</h2>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btn-bench-back">&larr; Back</button>
+      </div>
+      <div class="bench-table-wrap"><table class="bench-table" id="bench-table"></table></div>
+    </section>
+
+    <section id="v-shortlist" style="display:none">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.25rem">
+        <div>
+          <span class="label" style="color:var(--c-green)">SHORTLIST</span>
+          <h2 class="role-name" style="font-size:1.5rem;margin-top:0.2rem" id="shortlist-title">Shortlisted Candidates</h2>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btn-shortlist-back">&larr; Back</button>
+      </div>
+      <div id="shortlist-list"></div>
+    </section>
+
+    <section id="v-directory" style="display:none">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.25rem">
+        <div>
+          <span class="label label-accent">ALL ROLES</span>
+          <h2 class="role-name" style="font-size:1.5rem;margin-top:0.2rem">Candidate Directory</h2>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btn-dir-back">&larr; Back</button>
+      </div>
+      <div id="directory-content"></div>
+    </section>
+  </main>
+
+  <div class="overlay" id="ov-roles" role="dialog" aria-modal="true">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="label label-accent">FIND A ROLE</span>
+        <button class="btn btn-ghost btn-xs" id="ov-roles-close">&times;</button>
+      </div>
+      <div class="cmd-search-wrap"><input type="text" class="cmd-search-input" id="role-search" placeholder="Search roles..." autocomplete="off"></div>
+      <div class="panel-body" id="role-cmd-list" style="padding:0;max-height:260px"></div>
+      <div class="panel-foot">
+        <button class="btn btn-outline btn-sm" id="btn-cmd-upload-jd">Upload JD</button>
+        <button class="btn btn-fill btn-sm" id="btn-cmd-create-role">+ Create new role</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-add-cand" role="dialog" aria-modal="true">
+    <div class="panel">
+      <div class="panel-head"><span class="label">ADD CANDIDATE</span><button class="btn btn-ghost btn-xs" id="ov-add-close">&times;</button></div>
+      <div class="panel-body">
+        <div style="font-size:0.8125rem;color:var(--c-dim)">Target role: <strong id="add-cand-role" style="color:var(--c-accent)"></strong></div>
+        <div class="dropzone" id="resume-drop">
+          <input type="file" id="resume-input" accept=".pdf,.txt" style="display:none">
+          <div class="dropzone-label">Drop resume here</div>
+          <div class="dropzone-hint">or click to choose &bull; PDF / TXT</div>
+          <div class="dropzone-file" id="resume-fname"></div>
+        </div>
+        <div id="resume-spin" style="display:none;text-align:center;font-size:0.8125rem;color:var(--c-accent);font-weight:600">Parsing resume with AI...</div>
+      </div>
+      <div class="panel-foot">
+        <button class="btn btn-outline btn-sm" id="btn-add-cancel">Cancel</button>
+        <button class="btn btn-fill btn-sm" id="btn-add-submit" disabled>Add Candidate</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-create-role" role="dialog" aria-modal="true">
+    <div class="panel">
+      <div class="panel-head"><span class="label label-accent">NEW ROLE</span><button class="btn btn-ghost btn-xs" id="ov-create-close">&times;</button></div>
+      <form id="create-role-form">
+        <div class="panel-body">
+          <div class="field"><label for="cr-title">Role Title</label><input type="text" id="cr-title" placeholder="e.g. Data Science & AI Intern" required></div>
+          <div class="field"><label for="cr-desc">Description</label><textarea id="cr-desc" rows="3" placeholder="Responsibilities, requirements..." required></textarea></div>
+          <div class="field"><label for="cr-skills">Required Skills</label><input type="text" id="cr-skills" placeholder="e.g. Python, SQL, Pandas, GenAI"></div>
+          <div class="field"><label for="cr-exp">Experience</label><input type="text" id="cr-exp" placeholder="e.g. 0-2 years"></div>
+        </div>
+        <div class="panel-foot"><button type="button" class="btn btn-outline btn-sm" id="btn-cr-cancel">Cancel</button><button type="submit" class="btn btn-fill btn-sm" id="btn-cr-submit">Create role</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-upload-jd" role="dialog" aria-modal="true">
+    <div class="panel">
+      <div class="panel-head"><span class="label">UPLOAD JOB DESCRIPTION</span><button class="btn btn-ghost btn-xs" id="ov-jd-close">&times;</button></div>
+      <div class="panel-body">
+        <div class="dropzone" id="jd-drop">
+          <input type="file" id="jd-input" accept=".pdf,.txt" style="display:none">
+          <div class="dropzone-label">Drop JD document here</div>
+          <div class="dropzone-hint">or click to choose &bull; PDF / TXT</div>
+          <div class="dropzone-file" id="jd-fname"></div>
+        </div>
+        <div id="jd-spin" style="display:none;text-align:center;font-size:0.8125rem;color:var(--c-accent);font-weight:600">Extracting role requirements...</div>
+      </div>
+      <div class="panel-foot"><button class="btn btn-outline btn-sm" id="btn-jd-cancel">Cancel</button><button class="btn btn-fill btn-sm" id="btn-jd-submit" disabled>Upload &amp; Extract</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-delete" role="dialog" aria-modal="true">
+    <div class="panel panel-sm">
+      <div class="panel-head"><span class="label" style="color:var(--c-red)">CONFIRM DELETION</span><button class="btn btn-ghost btn-xs" id="ov-del-close">&times;</button></div>
+      <div class="panel-body"><p style="font-size:0.875rem;line-height:1.5">Delete <strong id="del-role-name"></strong>? This removes the role and all evaluations. Job numbers won't be reused.</p></div>
+      <div class="panel-foot"><button class="btn btn-outline btn-sm" id="btn-del-cancel">Cancel</button><button class="btn btn-danger btn-sm" id="btn-del-confirm">Delete role</button></div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
